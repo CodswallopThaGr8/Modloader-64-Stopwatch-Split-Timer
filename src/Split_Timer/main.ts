@@ -137,7 +137,7 @@ class Split_Timer implements IPlugin{
     
         if(this.isWindowOpen[0]){
             this.ModLoader.ImGui.pushStyleColor(Col.ResizeGrip, rgba(0,0,0,0))
-            this.ModLoader.ImGui.setNextWindowSizeConstraints(xy(320,300), xy(320,900));
+            this.ModLoader.ImGui.setNextWindowSizeConstraints(xy(320,120), xy(320,900));
             this.ModLoader.ImGui.pushStyleVar(StyleVar.WindowBorderSize, 4);
             
             if(this.ModLoader.ImGui.begin("Stopwatch & Split Timer", this.isWindowOpen, WindowFlags.NoScrollbar + WindowFlags.NoCollapse)){
@@ -264,7 +264,7 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.endTooltip();
                 }
                 }
-                if(this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.DefaultOpen + TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)){
+                if(this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)){
 
                 if(this.ModLoader.ImGui.button("Make a Custom Route", xy(305.5, 25))){
                     this.singleLine1 = [""]
