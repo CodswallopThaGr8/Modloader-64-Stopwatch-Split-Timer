@@ -175,13 +175,16 @@ class Split_Timer implements IPlugin{
                 }
 
                 let btnw = 0;
-                let columnResizeY = this.ModLoader.ImGui.getWindowHeight() - 250;
                 let windowWidth = 320;
                 let windowHeight = 600;
-                let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
                 
                 if (this.ModLoader.ImGui.collapsingHeader("Stopwatch", TreeNodeFlags.Framed + TreeNodeFlags.DefaultOpen)){
-                
+                    //Tooltip for Hotkeys
+                    if (this.ModLoader.ImGui.isItemHovered()){
+                        this.ModLoader.ImGui.beginTooltip();
+                        this.ModLoader.ImGui.text("To use hotkeys, make sure this window is focused.")
+                        this.ModLoader.ImGui.endTooltip();
+                    }
                     this.ModLoader.ImGui.pushStyleColor(Col.Text, rgb(255, 0, 0));
                     this.ModLoader.ImGui.text("                         ")
                     this.ModLoader.ImGui.sameLine()
@@ -269,6 +272,7 @@ class Split_Timer implements IPlugin{
                     this.isCategorySetupOpen[0] = true;
                 }
                 if (this.ModLoader.ImGui.beginTabBar("Routes", TabBarFlags.AutoSelectNewTabs)){
+                    let columnResizeY = this.ModLoader.ImGui.getWindowHeight() - 250;
                     for(let keyIndex = 0; keyIndex < (Object.keys(this.config) as string[]).length; keyIndex++){
                         const categoryName: string = Object.keys(this.config)[keyIndex] as string;
                         this.categoryName = categoryName;
@@ -288,6 +292,7 @@ class Split_Timer implements IPlugin{
                             
                     }          
                     this.ModLoader.ImGui.endTabBar();
+                    let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
                     this.ModLoader.ImGui.setCursorPosY(windowResizeHeight);
                     this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getWindowContentRegionWidth()/14);
                     if(this.ModLoader.ImGui.button("Delete Route", xy(135,25))){
@@ -350,8 +355,8 @@ class Split_Timer implements IPlugin{
             let windowWidth3 = 400;
             let windowHeight3 = 115;
             this.ModLoader.ImGui.setWindowSize({x: windowWidth3, y: windowHeight3}, Cond.Always)
-            this.ModLoader.ImGui.text("          Are you sure you want to delete this Route?");
-            this.ModLoader.ImGui.text("                        This process is irreversible.");
+            this.ModLoader.ImGui.text("           Are you sure you want to delete this Route?");
+            this.ModLoader.ImGui.text("                         This process is irreversible.");
             this.ModLoader.ImGui.newLine();
             if(this.ModLoader.ImGui.button("Yes", xy(185,25))){
                 delete this.config[this.categoryName];
