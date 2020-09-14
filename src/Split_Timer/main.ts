@@ -1,11 +1,9 @@
 
-import { KeyObject, timingSafeEqual } from 'crypto';
 import {IPlugin, IModLoaderAPI} from 'modloader64_api/IModLoaderAPI';
 import { onViUpdate } from  'modloader64_api/PluginLifecycle';
 import { bool_ref, Col, Cond, TabBarFlags, string_ref, TreeNodeFlags, WindowFlags , StyleVar } from 'modloader64_api/Sylvain/ImGui';
-import { Input } from 'modloader64_api/Sylvain/Input';
 import { Scancode } from 'modloader64_api/Sylvain/Keybd';
-import { rgb, rgba, vec4, xy } from 'modloader64_api/Sylvain/vec';
+import { rgb, rgba, xy } from 'modloader64_api/Sylvain/vec';
 
 
 //Authors: Codswallop, JerryWester
