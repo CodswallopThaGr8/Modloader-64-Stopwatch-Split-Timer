@@ -180,7 +180,7 @@ class Split_Timer implements IPlugin{
                 let windowHeight = 600;
                 let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
                 
-                if (this.ModLoader.ImGui.collapsingHeader("Stopwatch", TreeNodeFlags.Framed)){
+                if (this.ModLoader.ImGui.collapsingHeader("Stopwatch", TreeNodeFlags.Framed + TreeNodeFlags.DefaultOpen)){
                 
                     this.ModLoader.ImGui.pushStyleColor(Col.Text, rgb(255, 0, 0));
                     this.ModLoader.ImGui.text("                         ")
