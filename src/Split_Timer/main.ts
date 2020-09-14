@@ -1,7 +1,7 @@
 
 import { IPlugin, IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
 import { onViUpdate } from  'modloader64_api/PluginLifecycle';
-import { bool_ref, Col, Cond, TabBarFlags, string_ref, TreeNodeFlags, WindowFlags , StyleVar } from 'modloader64_api/Sylvain/ImGui';
+import { bool_ref, Col, Cond, TabBarFlags, string_ref, TreeNodeFlags, WindowFlags , StyleVar, FocusedFlags } from 'modloader64_api/Sylvain/ImGui';
 import { Scancode } from 'modloader64_api/Sylvain/Keybd';
 import { rgb, rgba, xy } from 'modloader64_api/Sylvain/vec';
 
@@ -141,6 +141,34 @@ class Split_Timer implements IPlugin{
             this.ModLoader.ImGui.pushStyleVar(StyleVar.WindowBorderSize, 4);
             
             if(this.ModLoader.ImGui.begin("Stopwatch & Split Timer", this.isWindowOpen, WindowFlags.NoScrollbar + WindowFlags.NoCollapse)){
+                if (this.ModLoader.ImGui.isWindowFocused(FocusedFlags.RootAndChildWindows)){
+                    //Hotkey for Split
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.Space)){
+                        this.laps.push(this.currentTime);
+                    }
+                    //Hotkey for Stop
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.D)){
+                        this.isPaused = true;
+                    }
+                    //Hotkey for Start
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.S)){
+                        if(this.isPaused){
+                            this.lastDateNow = Date.now();
+                            this.isPaused = false;
+                        }
+                    }
+                    //Hotkey for Reset
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.R)){
+                        this.isPaused = true;
+                        this.currentTime = 0;
+                        this.lastDateNow = 0;
+                        this.laps = []; 
+                    }
+                    //Hotkey for Unsplit
+                    if(this.ModLoader.ImGui.isKeyPressed(Scancode.Backspace)){
+                        this.laps.pop();
+                    }
+                }
                 if(!this.isPaused){
                     this.currentTime += Date.now() - this.lastDateNow;
                     this.lastDateNow = Date.now();
@@ -151,8 +179,9 @@ class Split_Timer implements IPlugin{
                 let windowWidth = 320;
                 let windowHeight = 600;
                 let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
-
+                
                 if (this.ModLoader.ImGui.collapsingHeader("Stopwatch", TreeNodeFlags.Framed)){
+                
                     this.ModLoader.ImGui.pushStyleColor(Col.Text, rgb(255, 0, 0));
                     this.ModLoader.ImGui.text("                         ")
                     this.ModLoader.ImGui.sameLine()
@@ -160,17 +189,11 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.popStyleColor(1);
                 
                 
-                if (this.ModLoader.ImGui.isWindowFocused()){
+                
                 this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getCursorPosX() + this.ModLoader.ImGui.getWindowContentRegionWidth()/22 - btnw/2);
                 this.ModLoader.ImGui.setWindowSize({x: windowWidth, y: windowHeight}, Cond.FirstUseEver);
                 this.ModLoader.ImGui.pushStyleColor(Col.Button, rgb(42, 122, 0));
-                //Hotkey for Start
-                if (this.ModLoader.ImGui.isKeyPressed(Scancode.S)){
-                    if(this.isPaused){
-                        this.lastDateNow = Date.now();
-                        this.isPaused = false;
-                    }
-                }
+                
                 if (this.ModLoader.ImGui.button("Start")) {
                     if(this.isPaused){
                         this.lastDateNow = Date.now();
@@ -187,10 +210,7 @@ class Split_Timer implements IPlugin{
                 btnw = this.ModLoader.ImGui.getItemRectSize().x;
                 this.ModLoader.ImGui.sameLine();
                 this.ModLoader.ImGui.pushStyleColor(Col.Button, rgb(122, 42, 0));
-                //Hotkey for Stop
-                if (this.ModLoader.ImGui.isKeyPressed(Scancode.D)){
-                    this.isPaused = true;
-                }
+                
                 if (this.ModLoader.ImGui.button("Stop")){
                     this.isPaused = true;
                 }
@@ -203,13 +223,7 @@ class Split_Timer implements IPlugin{
                 this.ModLoader.ImGui.popStyleColor(1)
                 btnw = this.ModLoader.ImGui.getItemRectSize().x;
                 this.ModLoader.ImGui.sameLine();
-                //Hotkey for Reset
-                if (this.ModLoader.ImGui.isKeyPressed(Scancode.R)){
-                    this.isPaused = true;
-                    this.currentTime = 0;
-                    this.lastDateNow = 0;
-                    this.laps = []; 
-                }
+                
                 if (this.ModLoader.ImGui.button("Reset")){
                     this.isPaused = true;
                     this.currentTime = 0;
@@ -224,10 +238,7 @@ class Split_Timer implements IPlugin{
                 }
                 btnw = this.ModLoader.ImGui.getItemRectSize().x;
                 this.ModLoader.ImGui.sameLine();
-                //Hotkey for Split
-                if (this.ModLoader.ImGui.isKeyPressed(Scancode.Space)){
-                    this.laps.push(this.currentTime);
-                }
+                
                 
                 if (this.ModLoader.ImGui.button("Split")){
                     this.laps.push(this.currentTime);
@@ -239,10 +250,7 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.endTooltip();
                 }
                 this.ModLoader.ImGui.sameLine();
-                //Hotkey for Unsplit
-                if(this.ModLoader.ImGui.isKeyPressed(Scancode.Backspace)){
-                    this.laps.pop();
-                }
+                
                 if (this.ModLoader.ImGui.button("Unsplit")){
                     this.laps.pop();
                 }
@@ -251,7 +259,6 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.beginTooltip();
                     this.ModLoader.ImGui.text("Hotkey: Backspace")
                     this.ModLoader.ImGui.endTooltip();
-                }
                 }
                 }
                 if(this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.DefaultOpen + TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)){
