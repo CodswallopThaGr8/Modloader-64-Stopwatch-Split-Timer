@@ -1,5 +1,5 @@
 
-import {IPlugin, IModLoaderAPI} from 'modloader64_api/IModLoaderAPI';
+import { IPlugin, IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
 import { onViUpdate } from  'modloader64_api/PluginLifecycle';
 import { bool_ref, Col, Cond, TabBarFlags, string_ref, TreeNodeFlags, WindowFlags , StyleVar } from 'modloader64_api/Sylvain/ImGui';
 import { Scancode } from 'modloader64_api/Sylvain/Keybd';
