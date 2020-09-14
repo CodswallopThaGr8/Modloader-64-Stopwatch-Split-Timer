@@ -139,6 +139,7 @@ class Split_Timer implements IPlugin{
             this.ModLoader.ImGui.pushStyleColor(Col.ResizeGrip, rgba(0,0,0,0))
             this.ModLoader.ImGui.setNextWindowSizeConstraints(xy(320,300), xy(320,900));
             this.ModLoader.ImGui.pushStyleVar(StyleVar.WindowBorderSize, 4);
+            
             if(this.ModLoader.ImGui.begin("Stopwatch & Split Timer", this.isWindowOpen, WindowFlags.NoScrollbar + WindowFlags.NoCollapse)){
                 if(!this.isPaused){
                     this.currentTime += Date.now() - this.lastDateNow;
@@ -159,7 +160,7 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.popStyleColor(1);
                 
                 
-               
+                if (this.ModLoader.ImGui.isWindowFocused()){
                 this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getCursorPosX() + this.ModLoader.ImGui.getWindowContentRegionWidth()/22 - btnw/2);
                 this.ModLoader.ImGui.setWindowSize({x: windowWidth, y: windowHeight}, Cond.FirstUseEver);
                 this.ModLoader.ImGui.pushStyleColor(Col.Button, rgb(42, 122, 0));
@@ -251,7 +252,8 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.text("Hotkey: Backspace")
                     this.ModLoader.ImGui.endTooltip();
                 }
-            }
+                }
+                }
                 if(this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.DefaultOpen + TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)){
 
                 if(this.ModLoader.ImGui.button("Make a Custom Route", xy(305.5, 25))){
