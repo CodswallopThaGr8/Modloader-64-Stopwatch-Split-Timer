@@ -159,7 +159,7 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.sameLine()
                     this.ModLoader.ImGui.text(this.parseTime(this.currentTime));;
                     this.ModLoader.ImGui.popStyleColor(1);
-                }
+                
                 
                
                 this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getCursorPosX() + this.ModLoader.ImGui.getWindowContentRegionWidth()/22 - btnw/2);
@@ -253,6 +253,7 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.text("Hotkey: Backspace")
                     this.ModLoader.ImGui.endTooltip();
                 }
+            }
                 if(this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.DefaultOpen + TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)){
 
                 if(this.ModLoader.ImGui.button("Make a Custom Route", xy(305.5, 25))){
