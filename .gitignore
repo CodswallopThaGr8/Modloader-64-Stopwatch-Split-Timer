@@ -1,0 +1,10 @@
+# Ignore all files...
+*
+
+# Except for these ones
+!/package.json
+!/package-lock.json
+!/src
+!/src/**
+!/src/**/*.*
+!/.gitignore
