@@ -1,3 +1,3 @@
-﻿#Modloader64 Split Timer & Stopwatch
+﻿﻿Modloader64 Split Timer & Stopwatch
  
 A tool made for Modloader64
