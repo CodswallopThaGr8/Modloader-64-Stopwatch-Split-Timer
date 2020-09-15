@@ -92,7 +92,7 @@ class Split_Timer implements IPlugin{
 
     isWindowOpen: bool_ref = [false]
     isPaused: boolean = true;
-    currentTime: number = 0
+    currentTime: number  = 0
     lastDateNow: number = 0
     laps: number[] = []
     isCategorySetupOpen: bool_ref = [false]
@@ -109,11 +109,17 @@ class Split_Timer implements IPlugin{
  
     
 
-    parseTime(n: number): string{
+    stopwatchTime(n: number): string{
         const seconds = (n / 1000) % 60;
         const minutes = Math.floor(n / 60000) % 60;
         const hours = Math.floor(n / 3600000);
-        return `${hours < 10 ? "0"+hours.toString() : hours.toString()}:${minutes < 10 ? "0"+minutes.toString() : minutes.toString()}:${seconds < 10 ? "0"+seconds.toFixed(2) : seconds.toFixed(2)}`;
+        return `${hours > 0 ? hours.toString()+":":""}${minutes > 0 ? minutes.toString()+":" : ""}${seconds < 10 ? "0"+seconds.toFixed(2) : seconds.toFixed(2)}`;
+    }
+    routeTime(n: number): string{
+        const seconds = (n / 1000) % 60;
+        const minutes = Math.floor(n / 60000) % 60;
+        const hours = Math.floor(n / 3600000);
+        return `${hours > 0 ? hours.toString()+":":""}${minutes > 0 ? minutes.toString()+":" : "0"+":"}${seconds < 10 ? "0"+seconds.toFixed(1) : seconds.toFixed(1)}`;
     }
     setRoute(categoryName: string, splitNames: string[]){
         this.ModLoader.config.setData("Split_Timer", categoryName, splitNames, true);
@@ -188,7 +194,7 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.pushStyleColor(Col.Text, rgb(255, 0, 0));
                     this.ModLoader.ImGui.text("                         ")
                     this.ModLoader.ImGui.sameLine()
-                    this.ModLoader.ImGui.text(this.parseTime(this.currentTime));;
+                    this.ModLoader.ImGui.text(this.stopwatchTime(this.currentTime));;
                     this.ModLoader.ImGui.popStyleColor(1);
                 
                 
@@ -284,8 +290,9 @@ class Split_Timer implements IPlugin{
                                 }
                                     this.ModLoader.ImGui.nextColumn();
                                     for(let i = 0; i < this.laps.length; i++){
-                                        this.ModLoader.ImGui.text(this.parseTime(this.laps[i]));
+                                        this.ModLoader.ImGui.text(this.routeTime(this.laps[i]))                   
                                     }
+       
                             this.ModLoader.ImGui.endChild();
                             this.ModLoader.ImGui.endTabItem();
                         } 
