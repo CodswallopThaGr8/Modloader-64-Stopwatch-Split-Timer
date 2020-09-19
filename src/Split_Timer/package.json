@@ -2,12 +2,12 @@
   "name": "Split_Timer",
   "version": "1.0.0",
   "description": "",
-  "main": "main.js",
-  "updateUrl": "https://github.com/CodswallopThaGr8/Modloader-64-Stopwatch-Split-Timer/blob/master/update.json",
+  "main": "splittimer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "author": "Codswallop",
+  "license": "ISC",
+  "updateUrl": "https://raw.githubusercontent.com/CodswallopThaGr8/Modloader-64-Stopwatch-Split-Timer/master/update.json"
 }
