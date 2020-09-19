@@ -8,3 +8,4 @@
 !/src/**
 !/src/**/*.*
 !/.gitignore
+!/update.json

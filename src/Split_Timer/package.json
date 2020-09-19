@@ -10,3 +10,6 @@
   "author": "",
   "license": "ISC"
 }
+{
+    "updateUrl": "https://raw.githubusercontent.com/<GitHub Username>/<Mod Repo Name>/master/update.json"
+}
