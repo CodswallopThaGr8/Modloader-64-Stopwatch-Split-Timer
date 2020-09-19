@@ -3,13 +3,11 @@
   "version": "1.0.0",
   "description": "",
   "main": "main.js",
+  "updateUrl": "https://github.com/CodswallopThaGr8/Modloader-64-Stopwatch-Split-Timer/blob/master/update.json",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC"
-}
-{
-    "updateUrl": "https://raw.githubusercontent.com/<GitHub Username>/<Mod Repo Name>/master/update.json"
 }
