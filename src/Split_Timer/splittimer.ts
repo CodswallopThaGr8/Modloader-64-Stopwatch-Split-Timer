@@ -1,25 +1,35 @@
 
 import { IPlugin, IModLoaderAPI } from 'modloader64_api/IModLoaderAPI';
-import { onViUpdate } from  'modloader64_api/PluginLifecycle';
-import { bool_ref, Col, Cond, TabBarFlags, string_ref, TreeNodeFlags, WindowFlags , StyleVar, FocusedFlags } from 'modloader64_api/Sylvain/ImGui';
+import { onViUpdate } from 'modloader64_api/PluginLifecycle';
+import { bool_ref, Col, Cond, TabBarFlags, string_ref, TreeNodeFlags, WindowFlags, StyleVar, FocusedFlags } from 'modloader64_api/Sylvain/ImGui';
 import { Scancode } from 'modloader64_api/Sylvain/Keybd';
 import { rgb, rgba, xy } from 'modloader64_api/Sylvain/vec';
+import { IOOTCore, OotEvents } from "modloader64_api/OOT/OOTAPI";
+import { EventHandler } from "modloader64_api/EventHandler";
+import { InjectCore } from "modloader64_api/CoreInjection";
+
 
 
 //Authors: Codswallop, JerryWester
 
-class Split_Timer implements IPlugin{
+class Split_Timer implements IPlugin {
 
     ModLoader!: IModLoaderAPI;
     pluginName?: string | undefined;
-    config!:any;
-    
+    config!: any;
+    //@InjectCore()
+    //core!: IOOTCore;
+    lastSceneFlags!: Buffer;
+    lastEventFlags!: Buffer;
+    lastItemFlags!: Buffer;
+    lastInfTable!: Buffer;
+
 
     preinit(): void {
-        
+
     }
     init(): void {
-        
+
         this.config = this.ModLoader.config.registerConfigCategory("Split_Timer");
         this.ModLoader.config.setData("Split_Timer", "Any%", [
             "Escape",
@@ -85,14 +95,22 @@ class Split_Timer implements IPlugin{
         ]);
     }
     postinit(): void {
-        
+
     }
+
+
+
+
     onTick(frame?: number | undefined): void {
+        // if (this.core.helper.isLinkEnteringLoadingZone() || this.core.global.scene_framecount <= 60)
+        //     return;
+        // this.saveLiveSceneFlags();
+
     }
 
     isWindowOpen: bool_ref = [false]
     isPaused: boolean = true;
-    currentTime: number  = 0
+    currentTime: number = 0
     lastDateNow: number = 0
     laps: number[] = []
     isCategorySetupOpen: bool_ref = [false]
@@ -100,82 +118,117 @@ class Split_Timer implements IPlugin{
     multiLine1: string_ref = [""]
     isPopupOpen: bool_ref = [false]
     categoryName: string = ""
-    delRoute: any
-    
-  
 
-    
-    
- 
-    
+    @EventHandler(OotEvents.ON_SAVE_LOADED)
+    onSaveLoaded(event: OotEvents.ON_SAVE_LOADED): void {
+        {
+            if (this.isPaused) {
+                this.lastDateNow = Date.now();
+                this.isPaused = false;
+            }
+        }
+    }
 
-    stopwatchTime(n: number): string{
+
+
+    // saveLiveSceneFlags() {
+    //     let currentSavedSceneData: Buffer = this.core.global.getSaveDataForCurrentScene();
+    //     let liveSceneChests: Buffer = this.core.global.liveSceneData_chests;
+    //     let liveSceneSwitch: Buffer = this.core.global.liveSceneData_switch;
+    //     let liveSceneCollect: Buffer = this.core.global.liveSceneData_collectable;
+    //     let liveSceneClear: Buffer = this.core.global.liveSceneData_clear;
+    //     let liveSceneTemp: Buffer = this.core.global.liveSceneData_temp;
+
+    //     let newData: Buffer = Buffer.alloc(0x1C);
+
+    //     liveSceneChests.copy(newData, 0x0);
+    //     liveSceneSwitch.copy(newData, 0x4);
+    //     liveSceneCollect.copy(newData, 0x8);
+    //     liveSceneClear.copy(newData, 0xC);
+    //     liveSceneTemp.copy(newData, 0x10);
+    //     currentSavedSceneData.copy(newData, 0x14, 0x14, 0x18);
+    //     currentSavedSceneData.copy(newData, 0x18, 0x18, 0x1c);
+
+    //     let savedHash = this.ModLoader.utils.hashBuffer(currentSavedSceneData);
+    //     let newHash = this.ModLoader.utils.hashBuffer(newData);
+
+    //     if (savedHash !== newHash) {
+    //         this.core.global.writeSaveDataForCurrentScene(newData);
+    //         this.ModLoader.logger.info("Pushed Live Scene Flags to Save Context");
+
+    //     }
+    // }
+
+
+
+    stopwatchTime(n: number): string {
         const seconds = (n / 1000) % 60;
         const minutes = Math.floor(n / 60000) % 60;
         const hours = Math.floor(n / 3600000);
-        return `${hours > 0 ? hours.toString()+":":""}${minutes > 0 ? minutes.toString()+":" : ""}${seconds < 10 ? "0"+seconds.toFixed(2) : seconds.toFixed(2)}`;
+        return `${hours > 0 ? hours.toString() + ":" : ""}${minutes > 0 ? minutes.toString() + ":" : ""}${seconds < 10 ? "0" + seconds.toFixed(2) : seconds.toFixed(2)}`;
     }
-    routeTime(n: number): string{
+    routeTime(n: number): string {
         const seconds = (n / 1000) % 60;
         const minutes = Math.floor(n / 60000) % 60;
         const hours = Math.floor(n / 3600000);
-        return `${hours > 0 ? hours.toString()+":":""}${minutes > 0 ? minutes.toString()+":" : "0"+":"}${seconds < 10 ? "0"+seconds.toFixed(1) : seconds.toFixed(1)}`;
+        return `${hours > 0 ? hours.toString() + ":" : ""}${minutes > 0 ? minutes.toString() + ":" : "0" + ":"}${seconds < 10 ? "0" + seconds.toFixed(1) : seconds.toFixed(1)}`;
     }
-    setRoute(categoryName: string, splitNames: string[]){
+    setRoute(categoryName: string, splitNames: string[]) {
         this.ModLoader.config.setData("Split_Timer", categoryName, splitNames, true);
         this.ModLoader.config.save();
     }
-    
-    
+
+
     @onViUpdate()
-    onViUpdate(){
-        
-        
-        if(this.ModLoader.ImGui.beginMainMenuBar()){
-            if(this.ModLoader.ImGui.beginMenu("Mods")){
-                if(this.ModLoader.ImGui.menuItem("Stopwatch & Split Timer")){
+    onViUpdate() {
+
+
+        if (this.ModLoader.ImGui.beginMainMenuBar()) {
+            if (this.ModLoader.ImGui.beginMenu("Mods")) {
+                if (this.ModLoader.ImGui.menuItem("Stopwatch & Split Timer")) {
                     this.isWindowOpen[0] = true;
                 }
                 this.ModLoader.ImGui.endMenu();
             }
             this.ModLoader.ImGui.endMainMenuBar();
         }
-    
-        if(this.isWindowOpen[0]){
-            this.ModLoader.ImGui.pushStyleColor(Col.ResizeGrip, rgba(0,0,0,0))
-            this.ModLoader.ImGui.setNextWindowSizeConstraints(xy(320,120), xy(320,900));
+
+        if (this.isWindowOpen[0]) {
+            this.ModLoader.ImGui.pushStyleColor(Col.ResizeGrip, rgba(0, 0, 0, 0))
+            this.ModLoader.ImGui.setNextWindowSizeConstraints(xy(320, 120), xy(320, 900));
             this.ModLoader.ImGui.pushStyleVar(StyleVar.WindowBorderSize, 4);
-            
-            if(this.ModLoader.ImGui.begin("Stopwatch & Split Timer", this.isWindowOpen, WindowFlags.NoScrollbar + WindowFlags.NoCollapse)){
-                if (this.ModLoader.ImGui.isWindowFocused(FocusedFlags.RootAndChildWindows)){
+
+            if (this.ModLoader.ImGui.begin("Stopwatch & Split Timer", this.isWindowOpen, WindowFlags.NoScrollbar + WindowFlags.NoCollapse)) {
+
+                if (this.ModLoader.ImGui.isWindowFocused(FocusedFlags.RootAndChildWindows)) {
                     //Hotkey for Split
-                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.Space)){
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.Space)) {
                         this.laps.push(this.currentTime);
                     }
                     //Hotkey for Stop
-                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.D)){
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.D)) {
                         this.isPaused = true;
                     }
                     //Hotkey for Start
-                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.S)){
-                        if(this.isPaused){
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.S)) {
+                        if (this.isPaused) {
                             this.lastDateNow = Date.now();
                             this.isPaused = false;
                         }
                     }
                     //Hotkey for Reset
-                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.R)){
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.R)) {
                         this.isPaused = true;
                         this.currentTime = 0;
                         this.lastDateNow = 0;
-                        this.laps = []; 
+                        this.laps = [];
                     }
                     //Hotkey for Unsplit
-                    if(this.ModLoader.ImGui.isKeyPressed(Scancode.Backspace)){
+                    if (this.ModLoader.ImGui.isKeyPressed(Scancode.Backspace)) {
                         this.laps.pop();
                     }
                 }
-                if(!this.isPaused){
+                if (!this.isPaused) {
                     this.currentTime += Date.now() - this.lastDateNow;
                     this.lastDateNow = Date.now();
                 }
@@ -183,10 +236,10 @@ class Split_Timer implements IPlugin{
                 let btnw = 0;
                 let windowWidth = 320;
                 let windowHeight = 600;
-                
-                if (this.ModLoader.ImGui.collapsingHeader("Stopwatch", TreeNodeFlags.Framed + TreeNodeFlags.DefaultOpen)){
+
+                if (this.ModLoader.ImGui.collapsingHeader("Stopwatch", TreeNodeFlags.Framed + TreeNodeFlags.DefaultOpen)) {
                     //Tooltip for Hotkeys
-                    if (this.ModLoader.ImGui.isItemHovered()){
+                    if (this.ModLoader.ImGui.isItemHovered()) {
                         this.ModLoader.ImGui.beginTooltip();
                         this.ModLoader.ImGui.text("To use hotkeys, make sure this window is focused.")
                         this.ModLoader.ImGui.endTooltip();
@@ -196,190 +249,189 @@ class Split_Timer implements IPlugin{
                     this.ModLoader.ImGui.sameLine()
                     this.ModLoader.ImGui.text(this.stopwatchTime(this.currentTime));;
                     this.ModLoader.ImGui.popStyleColor(1);
-                
-                
-                
-                this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getCursorPosX() + this.ModLoader.ImGui.getWindowContentRegionWidth()/22 - btnw/2);
-                this.ModLoader.ImGui.setWindowSize({x: windowWidth, y: windowHeight}, Cond.FirstUseEver);
-                this.ModLoader.ImGui.pushStyleColor(Col.Button, rgb(42, 122, 0));
-                
-                if (this.ModLoader.ImGui.button("Start")) {
-                    if(this.isPaused){
-                        this.lastDateNow = Date.now();
-                        this.isPaused = false;
-                    }
-                }
-                //Tooltip for Start
-                if (this.ModLoader.ImGui.isItemHovered()){
-                    this.ModLoader.ImGui.beginTooltip();
-                    this.ModLoader.ImGui.text("Hotkey: S")
-                    this.ModLoader.ImGui.endTooltip();
-                }
-                this.ModLoader.ImGui.popStyleColor(1);
-                btnw = this.ModLoader.ImGui.getItemRectSize().x;
-                this.ModLoader.ImGui.sameLine();
-                this.ModLoader.ImGui.pushStyleColor(Col.Button, rgb(122, 42, 0));
-                
-                if (this.ModLoader.ImGui.button("Stop")){
-                    this.isPaused = true;
-                }
-                //Tooltip for Stop
-                if (this.ModLoader.ImGui.isItemHovered()){
-                    this.ModLoader.ImGui.beginTooltip();
-                    this.ModLoader.ImGui.text("Hotkey: D")
-                    this.ModLoader.ImGui.endTooltip();
-                }
-                this.ModLoader.ImGui.popStyleColor(1)
-                btnw = this.ModLoader.ImGui.getItemRectSize().x;
-                this.ModLoader.ImGui.sameLine();
-                
-                if (this.ModLoader.ImGui.button("Reset")){
-                    this.isPaused = true;
-                    this.currentTime = 0;
-                    this.lastDateNow = 0;
-                    this.laps = []; 
-                }
-                //Tooltip for Reset
-                if (this.ModLoader.ImGui.isItemHovered()){
-                    this.ModLoader.ImGui.beginTooltip();
-                    this.ModLoader.ImGui.text("Hotkey: R")
-                    this.ModLoader.ImGui.endTooltip();
-                }
-                btnw = this.ModLoader.ImGui.getItemRectSize().x;
-                this.ModLoader.ImGui.sameLine();
-                
-                
-                if (this.ModLoader.ImGui.button("Split")){
-                    this.laps.push(this.currentTime);
-                }
-                //Tooltip for Split
-                if (this.ModLoader.ImGui.isItemHovered()){
-                    this.ModLoader.ImGui.beginTooltip();
-                    this.ModLoader.ImGui.text("Hotkey: Spacebar")
-                    this.ModLoader.ImGui.endTooltip();
-                }
-                this.ModLoader.ImGui.sameLine();
-                
-                if (this.ModLoader.ImGui.button("Unsplit")){
-                    this.laps.pop();
-                }
-                //Tooltip for Unsplit
-                if (this.ModLoader.ImGui.isItemHovered()){
-                    this.ModLoader.ImGui.beginTooltip();
-                    this.ModLoader.ImGui.text("Hotkey: Backspace")
-                    this.ModLoader.ImGui.endTooltip();
-                }
-                }
-                if(this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)){
 
-                if(this.ModLoader.ImGui.button("Make a Custom Route", xy(305.5, 25))){
-                    this.singleLine1 = [""]
-                    this.multiLine1 = [""]
-                    this.isCategorySetupOpen[0] = true;
-                }
-                if (this.ModLoader.ImGui.beginTabBar("Routes", TabBarFlags.AutoSelectNewTabs)){
-                    let columnResizeY = this.ModLoader.ImGui.getWindowHeight() - 250;
-                    for(let keyIndex = 0; keyIndex < (Object.keys(this.config) as string[]).length; keyIndex++){
-                        const categoryName: string = Object.keys(this.config)[keyIndex] as string;
-                        this.categoryName = categoryName;
-                        if (this.ModLoader.ImGui.beginTabItem(categoryName)){
-                            this.ModLoader.ImGui.beginChild("Columns", xy(305,columnResizeY), undefined);
-                            this.ModLoader.ImGui.columns(2);
-                                for(let index = 0; index < (this.config[categoryName] as string[]).length; index++){
-                                    this.ModLoader.ImGui.text(this.config[categoryName][index] as string);
-                                }
-                                    this.ModLoader.ImGui.nextColumn();
-                                    for(let i = 0; i < this.laps.length; i++){
-                                        this.ModLoader.ImGui.text(this.routeTime(this.laps[i]))                   
-                                    }
-       
-                            this.ModLoader.ImGui.endChild();
-                            this.ModLoader.ImGui.endTabItem();
-                        } 
-                            
-                    }          
-                    this.ModLoader.ImGui.endTabBar();
-                    let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
-                    this.ModLoader.ImGui.setCursorPosY(windowResizeHeight);
-                    this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getWindowContentRegionWidth()/14);
-                    if(this.ModLoader.ImGui.button("Delete Route", xy(135,25))){
-                        this.isPopupOpen[0] = true;
-                        this.isCategorySetupOpen[0] = false;
+
+
+                    this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getCursorPosX() + this.ModLoader.ImGui.getWindowContentRegionWidth() / 22 - btnw / 2);
+                    this.ModLoader.ImGui.setWindowSize({ x: windowWidth, y: windowHeight }, Cond.FirstUseEver);
+                    this.ModLoader.ImGui.pushStyleColor(Col.Button, rgb(42, 122, 0));
+
+                    if (this.ModLoader.ImGui.button("Start")) {
+                        if (this.isPaused) {
+                            this.lastDateNow = Date.now();
+                            this.isPaused = false;
+                        }
+                    }
+                    //Tooltip for Start
+                    if (this.ModLoader.ImGui.isItemHovered()) {
+                        this.ModLoader.ImGui.beginTooltip();
+                        this.ModLoader.ImGui.text("Hotkey: S")
+                        this.ModLoader.ImGui.endTooltip();
+                    }
+                    this.ModLoader.ImGui.popStyleColor(1);
+                    btnw = this.ModLoader.ImGui.getItemRectSize().x;
+                    this.ModLoader.ImGui.sameLine();
+                    this.ModLoader.ImGui.pushStyleColor(Col.Button, rgb(122, 42, 0));
+
+                    if (this.ModLoader.ImGui.button("Stop")) {
+                        this.isPaused = true;
+                    }
+                    //Tooltip for Stop
+                    if (this.ModLoader.ImGui.isItemHovered()) {
+                        this.ModLoader.ImGui.beginTooltip();
+                        this.ModLoader.ImGui.text("Hotkey: D")
+                        this.ModLoader.ImGui.endTooltip();
+                    }
+                    this.ModLoader.ImGui.popStyleColor(1)
+                    btnw = this.ModLoader.ImGui.getItemRectSize().x;
+                    this.ModLoader.ImGui.sameLine();
+
+                    if (this.ModLoader.ImGui.button("Reset")) {
+                        this.isPaused = true;
+                        this.currentTime = 0;
+                        this.lastDateNow = 0;
+                        this.laps = [];
+                    }
+                    //Tooltip for Reset
+                    if (this.ModLoader.ImGui.isItemHovered()) {
+                        this.ModLoader.ImGui.beginTooltip();
+                        this.ModLoader.ImGui.text("Hotkey: R")
+                        this.ModLoader.ImGui.endTooltip();
+                    }
+                    btnw = this.ModLoader.ImGui.getItemRectSize().x;
+                    this.ModLoader.ImGui.sameLine();
+
+
+                    if (this.ModLoader.ImGui.button("Split")) {
+                        this.laps.push(this.currentTime);
+                    }
+                    //Tooltip for Split
+                    if (this.ModLoader.ImGui.isItemHovered()) {
+                        this.ModLoader.ImGui.beginTooltip();
+                        this.ModLoader.ImGui.text("Hotkey: Spacebar")
+                        this.ModLoader.ImGui.endTooltip();
                     }
                     this.ModLoader.ImGui.sameLine();
-                    if(this.ModLoader.ImGui.button("Edit Route", xy(135,25))){
-                        this.isCategorySetupOpen[0] = true;
-                        this.isPopupOpen[0] = false;
-                        this.singleLine1[0] = this.categoryName;
-                        this.multiLine1[0] = this.config[this.categoryName].join("\n");
+
+                    if (this.ModLoader.ImGui.button("Unsplit")) {
+                        this.laps.pop();
                     }
-                    if(this.ModLoader.ImGui.isItemHovered()){
+                    //Tooltip for Unsplit
+                    if (this.ModLoader.ImGui.isItemHovered()) {
                         this.ModLoader.ImGui.beginTooltip();
-                        this.ModLoader.ImGui.text("Edit the currently selected route.");
+                        this.ModLoader.ImGui.text("Hotkey: Backspace")
                         this.ModLoader.ImGui.endTooltip();
                     }
                 }
-                }   
+                if (this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)) {
+
+                    if (this.ModLoader.ImGui.button("Make a Custom Route", xy(305.5, 25))) {
+                        this.singleLine1 = [""]
+                        this.multiLine1 = [""]
+                        this.isCategorySetupOpen[0] = true;
+                    }
+                    if (this.ModLoader.ImGui.beginTabBar("Routes", TabBarFlags.AutoSelectNewTabs)) {
+                        let columnResizeY = this.ModLoader.ImGui.getWindowHeight() - 250;
+                        for (let keyIndex = 0; keyIndex < (Object.keys(this.config) as string[]).length; keyIndex++) {
+                            const categoryName: string = Object.keys(this.config)[keyIndex] as string;
+                            if (this.ModLoader.ImGui.beginTabItem(categoryName)) {
+                                this.ModLoader.ImGui.beginChild("Columns", xy(305, columnResizeY), undefined);
+                                this.ModLoader.ImGui.columns(2);
+                                for (let index = 0; index < (this.config[categoryName] as string[]).length; index++) {
+                                    this.ModLoader.ImGui.text(this.config[categoryName][index] as string);
+                                    this.categoryName = categoryName
+                                }
+                                this.ModLoader.ImGui.nextColumn();
+                                for (let i = 0; i < this.laps.length; i++) {
+                                    this.ModLoader.ImGui.text(this.routeTime(this.laps[i]))
+                                }
+
+                                this.ModLoader.ImGui.endChild();
+                                this.ModLoader.ImGui.endTabItem();
+                            }
+
+                        }
+                        this.ModLoader.ImGui.endTabBar();
+                        let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
+                        this.ModLoader.ImGui.setCursorPosY(windowResizeHeight);
+                        this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getWindowContentRegionWidth() / 14);
+                        if (this.ModLoader.ImGui.button("Delete Route", xy(135, 25))) {
+                            this.isPopupOpen[0] = true;
+                            this.isCategorySetupOpen[0] = false;
+                        }
+                        this.ModLoader.ImGui.sameLine();
+                        if (this.ModLoader.ImGui.button("Edit Route", xy(135, 25))) {
+                            this.isCategorySetupOpen[0] = true;
+                            this.isPopupOpen[0] = false;
+                            this.singleLine1[0] = this.categoryName;
+                            this.multiLine1[0] = this.config[this.categoryName].join("\n");
+                        }
+                        if (this.ModLoader.ImGui.isItemHovered()) {
+                            this.ModLoader.ImGui.beginTooltip();
+                            this.ModLoader.ImGui.text("Edit the currently selected route.");
+                            this.ModLoader.ImGui.endTooltip();
+                        }
+                    }
+                }
             }
             this.ModLoader.ImGui.popStyleVar();
-            this.ModLoader.ImGui.popStyleColor(1);   
+            this.ModLoader.ImGui.popStyleColor(1);
             this.ModLoader.ImGui.end();
         }
-        if (this.isCategorySetupOpen[0]){
+        if (this.isCategorySetupOpen[0]) {
             this.ModLoader.ImGui.pushStyleVar(StyleVar.WindowBorderSize, 4);
             this.ModLoader.ImGui.begin("Custom Routes", this.isCategorySetupOpen, WindowFlags.NoResize + WindowFlags.NoDocking + WindowFlags.NoCollapse);
             let windowWidth2 = 425;
             let windowHeight2 = 320;
-            this.ModLoader.ImGui.setWindowSize({x: windowWidth2, y: windowHeight2}, Cond.Always);
+            this.ModLoader.ImGui.setWindowSize({ x: windowWidth2, y: windowHeight2 }, Cond.Always);
             this.ModLoader.ImGui.text("Category Name:");
             this.ModLoader.ImGui.sameLine();
             this.ModLoader.ImGui.inputText("##Category", this.singleLine1);
             this.ModLoader.ImGui.newLine();
             this.ModLoader.ImGui.text("Route:");
             this.ModLoader.ImGui.sameLine();
-            this.ModLoader.ImGui.inputTextMultiline("##Routes", this.multiLine1, xy(340,170));
-            if (this.ModLoader.ImGui.isItemHovered()){
+            this.ModLoader.ImGui.inputTextMultiline("##Routes", this.multiLine1, xy(340, 170));
+            if (this.ModLoader.ImGui.isItemHovered()) {
                 this.ModLoader.ImGui.beginTooltip();
                 this.ModLoader.ImGui.text("Put your route here followed by enter for each line.");
                 this.ModLoader.ImGui.endTooltip();
             }
             this.ModLoader.ImGui.newLine();
-            if(this.ModLoader.ImGui.button("Make Route", xy(400,25))){
+            if (this.ModLoader.ImGui.button("Make Route", xy(400, 25))) {
                 this.setRoute(this.singleLine1[0], this.multiLine1[0].split('\n'));
-                this.singleLine1[0] = "";
-                this.multiLine1[0] = "";
+                this.singleLine1 = [""];
+                this.multiLine1 = [""];
                 this.isCategorySetupOpen[0] = false;
-                this.ModLoader.config.save();
             }
             this.ModLoader.ImGui.popStyleVar();
             this.ModLoader.ImGui.end();
-        } 
-        
-        
-        if (this.isPopupOpen[0]){
+        }
+
+
+        if (this.isPopupOpen[0]) {
             this.ModLoader.ImGui.pushStyleVar(StyleVar.WindowBorderSize, 4);
             this.ModLoader.ImGui.begin("Confirmation", undefined, WindowFlags.NoResize + WindowFlags.NoDocking + WindowFlags.NoTitleBar);
             let windowWidth3 = 400;
             let windowHeight3 = 115;
-            this.ModLoader.ImGui.setWindowSize({x: windowWidth3, y: windowHeight3}, Cond.Always)
+            this.ModLoader.ImGui.setWindowSize({ x: windowWidth3, y: windowHeight3 }, Cond.Always)
             this.ModLoader.ImGui.text("           Are you sure you want to delete this Route?");
             this.ModLoader.ImGui.text("                         This process is irreversible.");
             this.ModLoader.ImGui.newLine();
-            if(this.ModLoader.ImGui.button("Yes", xy(185,25))){
+            if (this.ModLoader.ImGui.button("Yes", xy(185, 25))) {
                 delete this.config[this.categoryName];
                 this.isPopupOpen[0] = false;
                 this.ModLoader.config.save();
-            
+
             }
             this.ModLoader.ImGui.sameLine();
-            if (this.ModLoader.ImGui.button("No", xy(185,25))){
+            if (this.ModLoader.ImGui.button("No", xy(185, 25))) {
                 this.isPopupOpen[0] = false;
             }
-              
-         this.ModLoader.ImGui.popStyleVar();
-         this.ModLoader.ImGui.end();
+
+            this.ModLoader.ImGui.popStyleVar();
+            this.ModLoader.ImGui.end();
         }
-                
+
     }
 }
 
