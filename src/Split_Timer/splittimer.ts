@@ -4,7 +4,7 @@ import { onViUpdate } from 'modloader64_api/PluginLifecycle';
 import { bool_ref, Col, Cond, TabBarFlags, string_ref, TreeNodeFlags, WindowFlags, StyleVar, FocusedFlags } from 'modloader64_api/Sylvain/ImGui';
 import { Scancode } from 'modloader64_api/Sylvain/Keybd';
 import { rgb, rgba, xy } from 'modloader64_api/Sylvain/vec';
-import { IOOTCore, OotEvents } from "modloader64_api/OOT/OOTAPI";
+import { IOOTCore, OotEvents, OotFlagTypes, OotFlagSubTypes, OotFlagEvent, OotFlagEventImpl, Scene } from "modloader64_api/OOT/OOTAPI";
 import { EventHandler } from "modloader64_api/EventHandler";
 import { InjectCore } from "modloader64_api/CoreInjection";
 
@@ -128,6 +128,9 @@ class Split_Timer implements IPlugin {
             }
         }
     }
+
+
+
 
 
 
@@ -323,53 +326,55 @@ class Split_Timer implements IPlugin {
                         this.ModLoader.ImGui.endTooltip();
                     }
                 }
+
                 if (this.ModLoader.ImGui.collapsingHeader("Routes", TreeNodeFlags.Framed + TreeNodeFlags.FramePadding)) {
-
-                    if (this.ModLoader.ImGui.button("Make a Custom Route", xy(305.5, 25))) {
-                        this.singleLine1 = [""]
-                        this.multiLine1 = [""]
-                        this.isCategorySetupOpen[0] = true;
-                    }
-                    if (this.ModLoader.ImGui.beginTabBar("Routes", TabBarFlags.AutoSelectNewTabs)) {
-                        let columnResizeY = this.ModLoader.ImGui.getWindowHeight() - 250;
-                        for (let keyIndex = 0; keyIndex < (Object.keys(this.config) as string[]).length; keyIndex++) {
-                            const categoryName: string = Object.keys(this.config)[keyIndex] as string;
-                            if (this.ModLoader.ImGui.beginTabItem(categoryName)) {
-                                this.ModLoader.ImGui.beginChild("Columns", xy(305, columnResizeY), undefined);
-                                this.ModLoader.ImGui.columns(2);
-                                for (let index = 0; index < (this.config[categoryName] as string[]).length; index++) {
-                                    this.ModLoader.ImGui.text(this.config[categoryName][index] as string);
-                                    this.categoryName = categoryName
-                                }
-                                this.ModLoader.ImGui.nextColumn();
-                                for (let i = 0; i < this.laps.length; i++) {
-                                    this.ModLoader.ImGui.text(this.routeTime(this.laps[i]))
-                                }
-
-                                this.ModLoader.ImGui.endChild();
-                                this.ModLoader.ImGui.endTabItem();
-                            }
-
-                        }
-                        this.ModLoader.ImGui.endTabBar();
-                        let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
-                        this.ModLoader.ImGui.setCursorPosY(windowResizeHeight);
-                        this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getWindowContentRegionWidth() / 14);
-                        if (this.ModLoader.ImGui.button("Delete Route", xy(135, 25))) {
-                            this.isPopupOpen[0] = true;
-                            this.isCategorySetupOpen[0] = false;
-                        }
-                        this.ModLoader.ImGui.sameLine();
-                        if (this.ModLoader.ImGui.button("Edit Route", xy(135, 25))) {
+                    if (this.ModLoader.ImGui.getWindowHeight() > 250) {
+                        if (this.ModLoader.ImGui.button("Make a Custom Route", xy(305.5, 25))) {
+                            this.singleLine1 = [""]
+                            this.multiLine1 = [""]
                             this.isCategorySetupOpen[0] = true;
-                            this.isPopupOpen[0] = false;
-                            this.singleLine1[0] = this.categoryName;
-                            this.multiLine1[0] = this.config[this.categoryName].join("\n");
                         }
-                        if (this.ModLoader.ImGui.isItemHovered()) {
-                            this.ModLoader.ImGui.beginTooltip();
-                            this.ModLoader.ImGui.text("Edit the currently selected route.");
-                            this.ModLoader.ImGui.endTooltip();
+                        if (this.ModLoader.ImGui.beginTabBar("Routes", TabBarFlags.AutoSelectNewTabs)) {
+                            let columnResizeY = this.ModLoader.ImGui.getWindowHeight() - 250;
+                            for (let keyIndex = 0; keyIndex < (Object.keys(this.config) as string[]).length; keyIndex++) {
+                                const categoryName: string = Object.keys(this.config)[keyIndex] as string;
+                                if (this.ModLoader.ImGui.beginTabItem(categoryName)) {
+                                    this.ModLoader.ImGui.beginChild("Columns", xy(305, columnResizeY), undefined);
+                                    this.ModLoader.ImGui.columns(2);
+                                    for (let index = 0; index < (this.config[categoryName] as string[]).length; index++) {
+                                        this.ModLoader.ImGui.text(this.config[categoryName][index] as string);
+                                        this.categoryName = categoryName
+                                    }
+                                    this.ModLoader.ImGui.nextColumn();
+                                    for (let i = 0; i < this.laps.length; i++) {
+                                        this.ModLoader.ImGui.text(this.routeTime(this.laps[i]))
+                                    }
+
+                                    this.ModLoader.ImGui.endChild();
+                                    this.ModLoader.ImGui.endTabItem();
+                                }
+
+                            }
+                            this.ModLoader.ImGui.endTabBar();
+                            let windowResizeHeight = this.ModLoader.ImGui.getWindowHeight() - 35;
+                            this.ModLoader.ImGui.setCursorPosY(windowResizeHeight);
+                            this.ModLoader.ImGui.setCursorPosX(this.ModLoader.ImGui.getWindowContentRegionWidth() / 14);
+                            if (this.ModLoader.ImGui.button("Delete Route", xy(135, 25))) {
+                                this.isPopupOpen[0] = true;
+                                this.isCategorySetupOpen[0] = false;
+                            }
+                            this.ModLoader.ImGui.sameLine();
+                            if (this.ModLoader.ImGui.button("Edit Route", xy(135, 25))) {
+                                this.isCategorySetupOpen[0] = true;
+                                this.isPopupOpen[0] = false;
+                                this.singleLine1[0] = this.categoryName;
+                                this.multiLine1[0] = this.config[this.categoryName].join("\n");
+                            }
+                            if (this.ModLoader.ImGui.isItemHovered()) {
+                                this.ModLoader.ImGui.beginTooltip();
+                                this.ModLoader.ImGui.text("Edit the currently selected route.");
+                                this.ModLoader.ImGui.endTooltip();
+                            }
                         }
                     }
                 }
