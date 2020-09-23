@@ -168,13 +168,13 @@ class Split_Timer implements IPlugin {
         const seconds = (n / 1000) % 60;
         const minutes = Math.floor(n / 60000) % 60;
         const hours = Math.floor(n / 3600000);
-        return `${hours > 0 ? hours.toString() + ":" : ""}${minutes > 0 ? minutes.toString() + ":" : ""}${seconds < 10 ? "0" + seconds.toFixed(2) : seconds.toFixed(2)}`;
+        return `${hours > 0 ? hours.toString() + ":" : ""}${hours > 0 && minutes < 10 ? "0" : ""}${hours > 0 && minutes < 1 ? "0:" : ""}${minutes > 0 ? minutes.toString() + ":" : ""}${seconds < 10 ? "0" + seconds.toFixed(2) : seconds.toFixed(2)}`;
     }
     routeTime(n: number): string {
         const seconds = (n / 1000) % 60;
         const minutes = Math.floor(n / 60000) % 60;
         const hours = Math.floor(n / 3600000);
-        return `${hours > 0 ? hours.toString() + ":" : ""}${minutes > 0 ? minutes.toString() + ":" : "0" + ":"}${seconds < 10 ? "0" + seconds.toFixed(1) : seconds.toFixed(1)}`;
+        return `${hours > 0 ? hours.toString() + ":" : ""}${hours > 0 && minutes < 10 ? "0" : ""}${hours > 0 && minutes < 1 ? "0:" : ""}${minutes > 0 ? minutes.toString() + ":" : ""}${seconds < 10 ? "0" + seconds.toFixed(1) : seconds.toFixed(1)}`;
     }
     setRoute(categoryName: string, splitNames: string[]) {
         this.ModLoader.config.setData("Split_Timer", categoryName, splitNames, true);
